@@ -765,6 +765,13 @@ mod op {
         header: &'a fuse_in_header,
     }
 
+    /// Synchronize the filesystem — triggered by `sync -f <mountpoint>` (`syncfs(2)`).
+    #[derive(Debug)]
+    pub(crate) struct SyncFs<'a> {
+        #[expect(dead_code)]
+        header: &'a fuse_in_header,
+    }
+
     /// Release an open file.
     ///
     /// Release is called when there are no more references to an open file: all file
@@ -1852,6 +1859,7 @@ mod op {
                 header,
                 arg: data.fetch()?,
             }),
+            fuse_opcode::FUSE_SYNCFS => Operation::SyncFs(SyncFs { header }),
 
             #[cfg(target_os = "macos")]
             fuse_opcode::FUSE_SETVOLNAME => Operation::SetVolName(SetVolName {
@@ -1926,6 +1934,7 @@ pub(crate) enum Operation<'a> {
     Rename2(Rename2<'a>),
     Lseek(Lseek<'a>),
     CopyFileRange(CopyFileRange<'a>),
+    SyncFs(#[expect(dead_code)] SyncFs<'a>),
 
     #[cfg(target_os = "macos")]
     SetVolName(SetVolName<'a>),
@@ -2095,6 +2104,7 @@ impl fmt::Display for Operation<'_> {
                 x.offset(),
                 x.whence()
             ),
+            Operation::SyncFs(_) => write!(f, "SYNCFS"),
             Operation::CopyFileRange(x) => write!(
                 f,
                 "COPY_FILE_RANGE src {:?}, dest {:?}, len {}",

@@ -773,6 +773,14 @@ pub trait Filesystem: Send + Sync + 'static {
         reply.error(Errno::ENOSYS);
     }
 
+    /// Synchronize the filesystem — the FUSE counterpart of `syncfs(2)`
+    /// (`sync -f <mountpoint>`). Returning ENOSYS makes the kernel disable
+    /// future FUSE_SYNCFS calls for this mount.
+    fn syncfs(&self, _req: &Request, reply: ReplyEmpty) {
+        warn!("[Not Implemented] syncfs()");
+        reply.error(Errno::ENOSYS);
+    }
+
     /// Get file system statistics.
     fn statfs(&self, _req: &Request, _ino: INodeNo, reply: ReplyStatfs) {
         reply.statfs(0, 0, 0, 0, 0, 512, 255, 0);
